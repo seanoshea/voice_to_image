@@ -5,10 +5,11 @@ import {
   VertexAI,
 } from "@google-cloud/vertexai";
 
-const project = "voice-to-image-422913";
-// const project = '106466503185';
+var obj = JSON.parse(fs.readFileSync("file", "utf8"));
+
+const project = obj.quota_project_id;
 const location = "us-central1";
-// const textModel = "gemini-1.0-pro";
+// const textModel = 'gemini-1.0-pro';
 // const visionModel = 'imagegeneration@006';
 const visionModel = "gemini-1.0-pro-vision";
 const vertexAI = new VertexAI({ project: project, location: location });
@@ -44,18 +45,17 @@ const textToImage = async (text) => {
   //   },
   //   url: `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`,
   //   data: {
-  //     "instances": [
+  //     'instances': [
   //       {
-  //         "prompt": text
+  //         'prompt': text
   //       }
   //     ],
-  //     "parameters": {
-  //       "sampleCount": 1
+  //     'parameters': {
+  //       'sampleCount': 1
   //     }
   //   }
   // }).then(function (response) {
-  //   console.warn('derp');
-  //   // response.data.pipe(fs.createWriteStream('ada_lovelace.jpg'))
+  //    success
   // }).catch((err) => {
   //   console.error(err);
   // });

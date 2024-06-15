@@ -1,7 +1,17 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
+import globals from 'globals';
+import pluginJs from '@eslint/js';
+import stylisticJs from '@stylistic/eslint-plugin-js'
 
 export default [
-  { languageOptions: { globals: globals.node } },
+  {
+    plugins: {
+      '@stylistic/js': stylisticJs
+    },
+    rules: {
+      'indent': ['error', 2],
+      '@stylistic/js/quotes': ['single']
+    },
+    languageOptions: { globals: globals.node },
+  },
   pluginJs.configs.recommended,
 ];

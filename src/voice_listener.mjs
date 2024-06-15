@@ -1,22 +1,22 @@
-const encoding = 'LINEAR16';
+const encoding = "LINEAR16";
 const sampleRateHertz = 16000;
-const languageCode = 'en-US';
+const languageCode = "en-US";
 const streamingLimit = 10000; // ms - set to low number for demo purposes
 
-import chalk from 'chalk';
-import { Writable } from 'stream';
-import recorder from 'node-record-lpcm16';
+import chalk from "chalk";
+import { Writable } from "stream";
+import recorder from "node-record-lpcm16";
 
 // Imports the Google Cloud client library
 // Currently, only v1p1beta1 contains result-end-time
-import { v1p1beta1 as speech } from '@google-cloud/speech';
+import { v1p1beta1 as speech } from "@google-cloud/speech";
 
 const client = new speech.SpeechClient();
 
 const config = {
   encoding,
   sampleRateHertz,
-  languageCode
+  languageCode,
 };
 
 const request = {
@@ -36,27 +36,27 @@ let bridgingOffset = 0;
 let lastTranscriptWasFinal = false;
 let cb;
 
-const startStream = callback => {
+const startStream = (callback) => {
   cb = callback;
   // Clear current audioInput
   audioInput = [];
   // Initiate (Reinitiate) a recognize stream
   recognizeStream = client
     .streamingRecognize(request)
-    .on('error', err => {
+    .on("error", (err) => {
       if (err.code === 11) {
         // restartStream();
       } else {
-        console.error('API request error ' + err);
+        console.error("API request error " + err);
       }
     })
-    .on('data', speechCallback);
+    .on("data", speechCallback);
 
   // Restart stream when streamingLimit expires
   setTimeout(restartStream, streamingLimit);
-}
+};
 
-const speechCallback = stream => {
+const speechCallback = (stream) => {
   // Convert API result end time from seconds + nanoseconds to milliseconds
   resultEndTime =
     stream.results[0].resultEndTime.seconds * 1000 +
@@ -68,10 +68,10 @@ const speechCallback = stream => {
 
   process.stdout.clearLine();
   process.stdout.cursorTo(0);
-  let stdoutText = '';
+  let stdoutText = "";
   if (stream.results[0] && stream.results[0].alternatives[0]) {
     stdoutText =
-      correctedTime + ': ' + stream.results[0].alternatives[0].transcript;
+      correctedTime + ": " + stream.results[0].alternatives[0].transcript;
   }
 
   if (stream.results[0].isFinal) {
@@ -83,8 +83,7 @@ const speechCallback = stream => {
   } else {
     // Make sure transcript does not exceed console character length
     if (stdoutText.length > process.stdout.columns) {
-      stdoutText =
-        stdoutText.substring(0, process.stdout.columns - 4) + '...';
+      stdoutText = stdoutText.substring(0, process.stdout.columns - 4) + "...";
     }
     process.stdout.write(chalk.red(`${stdoutText}`));
 
@@ -137,7 +136,7 @@ const audioInputStreamTransform = new Writable({
 const restartStream = () => {
   if (recognizeStream) {
     recognizeStream.end();
-    recognizeStream.removeListener('data', speechCallback);
+    recognizeStream.removeListener("data", speechCallback);
     recognizeStream = null;
   }
   if (resultEndTime > 0) {
@@ -151,7 +150,7 @@ const restartStream = () => {
   restartCounter++;
 
   if (!lastTranscriptWasFinal) {
-    process.stdout.write('\n');
+    process.stdout.write("\n");
   }
   process.stdout.write(
     chalk.yellow(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
@@ -160,25 +159,27 @@ const restartStream = () => {
   newStream = true;
 
   startStream();
-}
+};
+
 // Start recording and send the microphone input to the Speech API
-recorder.record({
+recorder
+  .record({
     sampleRateHertz: sampleRateHertz,
     threshold: 0, // Silence threshold
     silence: 1000,
     keepSilence: true,
-    recordProgram: 'rec', // Try also "arecord" or "sox"
+    recordProgram: "rec", // Try also 'arecord' or 'sox'
   })
   .stream()
-  .on('error', err => {
-    console.error('Audio recording error ' + err);
+  .on("error", (err) => {
+    console.error("Audio recording error " + err);
   })
   .pipe(audioInputStreamTransform);
 
-console.log('');
-console.log('Listening, press Ctrl+C to stop.');
-console.log('');
-console.log('End (ms)       Transcript Results/Status');
-console.log('=========================================================');
+console.log("");
+console.log("Listening, press Ctrl+C to stop.");
+console.log("");
+console.log("End (ms)       Transcript Results/Status");
+console.log("=========================================================");
 
 export default { startStream };
