@@ -1,5 +1,5 @@
 node_modules/
 key.json
-image.png
+image_*.png
 .idea/
 .DS_Store

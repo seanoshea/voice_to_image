@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint src/*.mjs",
-    "start": "GOOGLE_APPLICATION_CREDENTIALS='./key.json' node index.js --trace-warnings"
+    "start": "GOOGLE_APPLICATION_CREDENTIALS='./key.json' node index.js --trace-warnings",
+    "test": "jest"
   },
   "engines": {
     "node": ">=20.0.0"

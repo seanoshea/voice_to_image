@@ -31,11 +31,14 @@ const generativeModel = vertexAI.getGenerativeModel({
 });
 
 const generateContent = async (text) => {
+  // TODO: Use the generativeModel variable here instead of making a direct API call against imagegeneration APIs.
   return await textToImage(text);
 };
 
 const textToImage = async (text) => {
-  console.warn("making the API call for ", text);
+  if (!text || text.length === 0) {
+    return;
+  }
   return fetch(
     `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`,
     {
@@ -60,15 +63,10 @@ const textToImage = async (text) => {
     .then((responseJson) => {
       if (responseJson.predictions && responseJson.predictions.length) {
         const prediction = responseJson.predictions[0];
-        const data = prediction.bytesBase64Encoded;
-        var buf = Buffer.from(data, "base64");
-        fs.writeFileSync("image.png", buf);
+        return prediction.bytesBase64Encoded;
       } else {
         console.error("Failed to generate a viable response", responseJson);
       }
-    })
-    .catch((error) => {
-      console.log("caught ", error);
     });
 };
 

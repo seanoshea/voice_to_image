@@ -75,9 +75,14 @@ const speechCallback = (stream) => {
   }
 
   if (stream.results[0].isFinal) {
-    process.stdout.write(chalk.green(`${stdoutText}\n`));
-    cb(stream.results[0].alternatives[0].transcript);
-
+    if (
+      stream.results[0] &&
+      stream.results[0].alternatives[0].transcript &&
+      stream.results[0].alternatives[0].transcript.length
+    ) {
+      process.stdout.write(chalk.green(`${stdoutText}\n`));
+      cb(stream.results[0].alternatives[0].transcript);
+    }
     isFinalEndTime = resultEndTime;
     lastTranscriptWasFinal = true;
   } else {
@@ -152,34 +157,41 @@ const restartStream = () => {
   if (!lastTranscriptWasFinal) {
     process.stdout.write("\n");
   }
-  process.stdout.write(
-    chalk.yellow(`${streamingLimit * restartCounter}: RESTARTING REQUEST\n`)
-  );
 
   newStream = true;
 
-  startStream();
+  startStream(cb);
+};
+
+const stopStream = () => {
+  if (recognizeStream) {
+    recognizeStream.end();
+    recognizeStream.removeListener("data", speechCallback);
+    recognizeStream = null;
+  }
+  if (recording) {
+    recording.stop();
+  }
 };
 
 // Start recording and send the microphone input to the Speech API
-recorder
-  .record({
-    sampleRateHertz: sampleRateHertz,
-    threshold: 0, // Silence threshold
-    silence: 1000,
-    keepSilence: true,
-    recordProgram: "rec", // Try also 'arecord' or 'sox'
-  })
+const recording = recorder.record({
+  sampleRateHertz: sampleRateHertz,
+  threshold: 0, // Silence threshold
+  silence: 1000,
+  keepSilence: true,
+  recordProgram: "rec", // Try also 'arecord' or 'sox'
+});
+
+recording
   .stream()
+  .pipe(audioInputStreamTransform)
   .on("error", (err) => {
     console.error("Audio recording error " + err);
-  })
-  .pipe(audioInputStreamTransform);
+  });
 
 console.log("");
 console.log("Listening, press Ctrl+C to stop.");
 console.log("");
-console.log("End (ms)       Transcript Results/Status");
-console.log("=========================================================");
 
-export default { startStream };
+export default { startStream, stopStream };
