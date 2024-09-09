@@ -76,7 +76,7 @@ const speechCallback = (stream) => {
 
   if (stream.results[0].isFinal) {
     process.stdout.write(chalk.green(`${stdoutText}\n`));
-    cb(stdoutText);
+    cb(stream.results[0].alternatives[0].transcript);
 
     isFinalEndTime = resultEndTime;
     lastTranscriptWasFinal = true;

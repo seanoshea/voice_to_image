@@ -5,7 +5,14 @@ import {
   VertexAI,
 } from "@google-cloud/vertexai";
 
-var obj = JSON.parse(fs.readFileSync("file", "utf8"));
+import { GoogleAuth } from "google-auth-library";
+import fs from "node:fs";
+
+var obj = JSON.parse(fs.readFileSync("key.json", "utf8"));
+
+const auth = new GoogleAuth();
+// TODO: Allow this to be passed in
+const pid = "voice-to-image-422913";
 
 const project = obj.quota_project_id;
 const location = "us-central1";
@@ -24,41 +31,45 @@ const generativeModel = vertexAI.getGenerativeModel({
 });
 
 const generateContent = async (text) => {
-  const request = {
-    contents: [
-      {
-        role: "user",
-        parts: [{ instances: { prompt: text } }],
-        // prompt: text
-      },
-    ],
-  };
-  return await generativeModel.generateContent(request);
+  return await textToImage(text);
 };
 
 const textToImage = async (text) => {
-  // axios({
-  //   method: 'post',
-  //   headers: {
-  //     Authorization: 'Bearer ' + await auth.getAccessToken(),
-  //     'Content-Type': 'application/json'
-  //   },
-  //   url: `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`,
-  //   data: {
-  //     'instances': [
-  //       {
-  //         'prompt': text
-  //       }
-  //     ],
-  //     'parameters': {
-  //       'sampleCount': 1
-  //     }
-  //   }
-  // }).then(function (response) {
-  //    success
-  // }).catch((err) => {
-  //   console.error(err);
-  // });
+  console.warn("making the API call for ", text);
+  return fetch(
+    `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        instances: [
+          {
+            prompt: text,
+          },
+        ],
+        parameters: {
+          sampleCount: 1,
+        },
+      }),
+      headers: {
+        Authorization: "Bearer " + (await auth.getAccessToken()),
+        "Content-Type": "application/json",
+      },
+    }
+  )
+    .then((response) => response.json())
+    .then((responseJson) => {
+      if (responseJson.predictions && responseJson.predictions.length) {
+        const prediction = responseJson.predictions[0];
+        const data = prediction.bytesBase64Encoded;
+        var buf = Buffer.from(data, "base64");
+        fs.writeFileSync("image.png", buf);
+      } else {
+        console.error("Failed to generate a viable response", responseJson);
+      }
+    })
+    .catch((error) => {
+      console.log("caught ", error);
+    });
 };
 
 export default { generateContent };
