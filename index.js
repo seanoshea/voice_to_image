@@ -1,4 +1,4 @@
-import generateContent from "./src/image_generator.mjs";
+import textToImage from "./src/image_generator.mjs";
 import startStream from "./src/voice_listener.mjs";
 import fs from "node:fs";
 import { exec } from "child_process";
@@ -34,7 +34,8 @@ const handleImageResponse = (data, phrase) => {
 // start listening for input first ...
 startStream.startStream((phrase) => {
   // and then, once a phrase has been picked up by the mic ...
-  generateContent.generateContent(phrase).then((data) => {
+  textToImage.textToImage(phrase).then((data) => {
+    // figure out how to interpret the results from VertexAI
     handleImageResponse(data, phrase);
   });
 });

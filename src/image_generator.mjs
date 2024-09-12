@@ -1,46 +1,18 @@
-import {
-  FunctionDeclarationSchemaType,
-  HarmBlockThreshold,
-  HarmCategory,
-  VertexAI,
-} from "@google-cloud/vertexai";
-
 import { GoogleAuth } from "google-auth-library";
 import fs from "node:fs";
 
-var obj = JSON.parse(fs.readFileSync("key.json", "utf8"));
-
+const obj = JSON.parse(fs.readFileSync("key.json", "utf8"));
 const auth = new GoogleAuth();
-// TODO: Allow this to be passed in
-const pid = "voice-to-image-422913";
-
-const project = obj.quota_project_id;
+const pid = obj.quota_project_id;
 const location = "us-central1";
-// const textModel = 'gemini-1.0-pro';
-// const visionModel = 'imagegeneration@006';
-const visionModel = "gemini-1.0-pro-vision";
-const vertexAI = new VertexAI({ project: project, location: location });
-
-// Instantiate Gemini models
-const generativeModel = vertexAI.getGenerativeModel({
-  model: visionModel,
-  // The following parameters are optional
-  // They can also be passed to individual content generation requests
-  // safetySettings: [{category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE}],
-  // generationConfig: {maxOutputTokens: 256},
-});
-
-const generateContent = async (text) => {
-  // TODO: Use the generativeModel variable here instead of making a direct API call against imagegeneration APIs.
-  return await textToImage(text);
-};
+const visionModel = "imagegeneration@006";
 
 const textToImage = async (text) => {
   if (!text || text.length === 0) {
     return;
   }
   return fetch(
-    `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`,
+    `https://us-central1-aiplatform.googleapis.com/v1/projects/${pid}/locations/${location}/publishers/google/models/${visionModel}:predict`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -70,4 +42,4 @@ const textToImage = async (text) => {
     });
 };
 
-export default { generateContent };
+export default { textToImage };
